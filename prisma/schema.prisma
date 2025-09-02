@@ -1,0 +1,94 @@
+// Prisma schema for cafe menu ordering app
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  admin
+  waiter
+  customer
+}
+
+enum OrderStatus {
+  open
+  submitted
+  preparing
+  ready
+  served
+  closed
+  cancelled
+}
+
+model User {
+  id        String   @id @db.Uuid
+  email     String   @unique
+  role      Role     @default(customer)
+  createdAt DateTime @default(now())
+  orders    Order[]  @relation("UserOrders")
+}
+
+model Table {
+  id         String  @id @default(cuid())
+  name       String
+  number     Int     @unique
+  capacity   Int
+  isActive   Boolean @default(true)
+  tableToken String  @unique
+  orders     Order[]
+}
+
+model Category {
+  id          String   @id @default(cuid())
+  name        String   @unique
+  description String?
+  sortOrder   Int      @default(0)
+  products    Product[]
+}
+
+model Product {
+  id          String   @id @default(cuid())
+  categoryId  String
+  category    Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  name        String
+  description String?
+  priceCents  Int
+  isAvailable Boolean  @default(true)
+  imageUrl    String?
+}
+
+model Order {
+  id              String      @id @default(cuid())
+  tableId         String
+  table           Table       @relation(fields: [tableId], references: [id], onDelete: Restrict)
+  status          OrderStatus @default(open)
+  subtotalCents   Int         @default(0)
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
+  createdByUserId String?
+  createdBy       User?       @relation("UserOrders", fields: [createdByUserId], references: [id])
+  customerId      String?
+  customer        User?       @relation(fields: [customerId], references: [id])
+  items           OrderItem[]
+
+  @@index([tableId])
+}
+
+model OrderItem {
+  id            String  @id @default(cuid())
+  orderId       String
+  order         Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  productId     String
+  product       Product @relation(fields: [productId], references: [id], onDelete: Restrict)
+  quantity      Int
+  note          String?
+  lineTotalCents Int
+  createdAt     DateTime @default(now())
+}
+
+// Additional SQL features like partial unique indexes and checks are in migrations
