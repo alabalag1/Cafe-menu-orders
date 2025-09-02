@@ -1,0 +1,3 @@
+import { NextRequest,NextResponse } from 'next/server';import { supabaseServer } from '@/lib/supabaseClient';
+export async function GET(){const sb=supabaseServer();const {data,error}=await sb.from('categories').select('*').order('sort_order',{ascending:true}); if(error) return NextResponse.json({error:error.message},{status:400}); return NextResponse.json({categories:data})}
+export async function POST(req:NextRequest){const b=await req.json(); const sb=supabaseServer(); const {data,error}=await sb.from('categories').insert({name:b.name,sort_order:Number(b.sort_order??0)}).select().single(); if(error) return NextResponse.json({error:error.message},{status:400}); return NextResponse.json({category:data})}

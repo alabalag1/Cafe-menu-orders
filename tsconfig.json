@@ -6,7 +6,6 @@
       "dom.iterable",
       "es2021"
     ],
-    "allowJs": false,
     "skipLibCheck": true,
     "strict": true,
     "noEmit": true,
@@ -26,11 +25,9 @@
     "paths": {
       "@/*": [
         "src/*"
-      ],
-      "@/src/*": [
-        "src/*"
       ]
-    }
+    },
+    "allowJs": true
   },
   "include": [
     "next-env.d.ts",

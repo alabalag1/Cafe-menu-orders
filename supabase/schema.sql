@@ -1,86 +1,21 @@
 create extension if not exists pgcrypto;
-
-create table if not exists tables (
-  id serial primary key,
-  name text not null,
-  qr_slug text unique
-);
-
-create table if not exists categories (
-  id serial primary key,
-  name text not null,
-  sort_order int default 0
-);
-
-create table if not exists menu_items (
-  id serial primary key,
-  category_id int references categories(id),
-  name text not null,
-  description text,
-  price_cents int not null,
-  is_available boolean default true,
-  image_url text
-);
-
-do $$ begin
-  create type order_status as enum ('pending','accepted','in_progress','ready','delivered','cancelled');
-exception when duplicate_object then null; end $$;
-
-create table if not exists orders (
-  id uuid primary key default gen_random_uuid(),
-  table_id int references tables(id) not null,
-  created_at timestamptz default now(),
-  status order_status default 'pending',
-  note text,
-  total_cents int not null
-);
-
-create table if not exists order_items (
-  id serial primary key,
-  order_id uuid references orders(id) on delete cascade,
-  menu_item_id int references menu_items(id),
-  qty int not null check (qty > 0),
-  price_cents int not null
-);
-
-create table if not exists order_events (
-  id serial primary key,
-  order_id uuid references orders(id) on delete cascade,
-  event text not null,
-  at timestamptz default now()
-);
-
-alter table categories enable row level security;
-alter table menu_items enable row level security;
-alter table orders enable row level security;
-alter table order_items enable row level security;
-alter table order_events enable row level security;
-
--- Drop & recreate policies to avoid duplicates across reruns
-drop policy if exists "public read categories" on categories;
-create policy "public read categories" on categories for select using (true);
-
-drop policy if exists "public read items" on menu_items;
-create policy "public read items" on menu_items for select using (true);
-
-drop policy if exists "insert orders" on orders;
-create policy "insert orders" on orders for insert with check (true);
-
-drop policy if exists "update orders by staff" on orders;
-create policy "update orders by staff" on orders for update using (
-  auth.jwt() ->> 'role' in ('waiter','kitchen','admin')
-);
-
-drop policy if exists "insert order_items" on order_items;
-create policy "insert order_items" on order_items for insert with check (true);
-
-drop policy if exists "select order_items" on order_items;
-create policy "select order_items" on order_items for select using (true);
-
-drop policy if exists "insert events" on order_events;
-create policy "insert events" on order_events for insert with check (true);
-
-drop policy if exists "select events" on order_events;
-create policy "select events" on order_events for select using (true);
-
--- Enable Realtime on: public.orders (and optional public.order_items)
+create table if not exists categories(id serial primary key,name text not null unique,sort_order int default 0);
+create table if not exists menu_items(id serial primary key,category_id int references categories(id),name text not null unique,description text,price_cents int not null,is_available boolean default true,image_url text);
+do $$ begin create type order_status as enum('pending','accepted','in_progress','ready','delivered','cancelled'); exception when duplicate_object then null; end $$;
+create table if not exists orders(id uuid primary key default gen_random_uuid(),table_id int not null,created_at timestamptz default now(),status order_status default 'pending',note text,total_cents int not null);
+create table if not exists order_items(id serial primary key,order_id uuid references orders(id) on delete cascade,menu_item_id int references menu_items(id),qty int not null check (qty>0),price_cents int not null);
+create table if not exists order_events(id serial primary key,order_id uuid references orders(id) on delete cascade,event text not null,at timestamptz default now());
+alter table categories enable row level security; alter table menu_items enable row level security; alter table orders enable row level security; alter table order_items enable row level security; alter table order_events enable row level security;
+drop policy if exists "public read categories" on categories; create policy "public read categories" on categories for select using(true);
+drop policy if exists "public read items" on menu_items; create policy "public read items" on menu_items for select using(true);
+drop policy if exists "insert orders" on orders; create policy "insert orders" on orders for insert with check(true);
+drop policy if exists "update orders by staff" on orders; create policy "update orders by staff" on orders for update using(auth.jwt()->>'role' in('waiter','kitchen','admin'));
+drop policy if exists "insert order_items" on order_items; create policy "insert order_items" on order_items for insert with check(true);
+drop policy if exists "select order_items" on order_items; create policy "select order_items" on order_items for select using(true);
+drop policy if exists "insert events" on order_events; create policy "insert events" on order_events for insert with check(true);
+drop policy if exists "select events" on order_events; create policy "select events" on order_events for select using(true);
+do $$ begin if not exists(select 1 from categories where name='Кафета') then insert into categories(name,sort_order) values('Кафета',0); end if; if not exists(select 1 from categories where name='Десерти') then insert into categories(name,sort_order) values('Десерти',1); end if; end $$;
+do $$ declare c1 int; c2 int; begin select id into c1 from categories where name='Кафета' limit 1; select id into c2 from categories where name='Десерти' limit 1;
+ if c1 is not null and not exists(select 1 from menu_items where name='Еспресо') then insert into menu_items(name,description,price_cents,category_id,is_available) values('Еспресо','Двойно',250,c1,true); end if;
+ if c2 is not null and not exists(select 1 from menu_items where name='Тирамису') then insert into menu_items(name,description,price_cents,category_id,is_available) values('Тирамису','Домашно',690,c2,true); end if;
+end $$;

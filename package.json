@@ -1,23 +1,4 @@
-{
-  "name": "cafe-menu-starter",
-  "version": "0.2.0",
-  "private": true,
-  "scripts": {
-    "dev": "next dev",
-    "build": "next build",
-    "start": "next start",
-    "lint": "next lint"
-  },
-  "dependencies": {
-    "@supabase/supabase-js": "^2.45.0",
-    "next": "14.2.5",
-    "react": "18.2.0",
-    "react-dom": "18.2.0"
-  },
-  "devDependencies": {
-    "@types/node": "^20.11.30",
-    "@types/react": "^18.2.66",
-    "@types/react-dom": "^18.2.21",
-    "typescript": "^5.4.0"
-  }
-}
+{"name":"cafe-menu-mvp","version":"1.0.0","private":true,
+ "scripts":{"dev":"next dev","build":"next build","start":"next start"},
+ "dependencies":{"@supabase/supabase-js":"^2.45.0","next":"14.2.5","react":"18.2.0","react-dom":"18.2.0","qrcode":"^1.5.3"},
+ "devDependencies":{"@types/node":"^20.11.30","@types/react":"^18.2.66","@types/react-dom":"^18.2.21","typescript":"^5.4.0"}}

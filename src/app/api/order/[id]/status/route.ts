@@ -1,12 +1,2 @@
-import { NextRequest, NextResponse } from 'next/server'
-import { supabaseServer } from '@/lib/supabaseClient'
-import type { OrderStatus } from '@/types'
-
-export async function POST(req: NextRequest, { params }: { params: { id: string }}) {
-  const { status } = await req.json() as { status: OrderStatus }
-  const sb = supabaseServer()
-  const { data, error } = await sb.from('orders').update({ status }).eq('id', params.id).select().single()
-  if (error) return NextResponse.json({ error: error.message }, { status: 400 })
-  await sb.from('order_events').insert({ order_id: params.id, event: `status:${status}` })
-  return NextResponse.json({ ok: true, order: data })
-}
+import { NextRequest,NextResponse } from 'next/server';import { supabaseServer } from '@/lib/supabaseClient';
+export async function POST(req:NextRequest,{params}:{params:{id:string}}){const {status}=await req.json(); const sb=supabaseServer(); const {data,error}=await sb.from('orders').update({status}).eq('id',params.id).select().single(); if(error) return NextResponse.json({error:error.message},{status:400}); await sb.from('order_events').insert({order_id:params.id,event:`status:${status}`}); return NextResponse.json({ok:true,order:data})}
