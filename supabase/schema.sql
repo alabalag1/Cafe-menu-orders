@@ -1,4 +1,3 @@
--- Enable pgcrypto for gen_random_uuid
 create extension if not exists pgcrypto;
 
 create table if not exists tables (
@@ -51,32 +50,24 @@ create table if not exists order_events (
   at timestamptz default now()
 );
 
--- Basic RLS (adjust to your needs)
 alter table categories enable row level security;
 alter table menu_items enable row level security;
 alter table orders enable row level security;
 alter table order_items enable row level security;
 alter table order_events enable row level security;
 
--- Public can read categories/menu_items
-create policy "public read categories" on categories for select using (true);
-create policy "public read items" on menu_items for select using (true);
+create policy if not exists "public read categories" on categories for select using (true);
+create policy if not exists "public read items" on menu_items for select using (true);
 
--- Anyone can insert an order (from table QR)
-create policy "insert orders" on orders for insert with check (true);
--- Staff can update orders by role claim
-create policy "update orders by staff" on orders for update using (
+create policy if not exists "insert orders" on orders for insert with check (true);
+create policy if not exists "update orders by staff" on orders for update using (
   auth.jwt() ->> 'role' in ('waiter','kitchen','admin')
 );
 
--- Anyone can insert order items for their newly created order
-create policy "insert order_items" on order_items for insert with check (true);
--- Read-only for order_items for everyone (optional)
-create policy "select order_items" on order_items for select using (true);
+create policy if not exists "insert order_items" on order_items for insert with check (true);
+create policy if not exists "select order_items" on order_items for select using (true);
 
--- Read-only for events (optional)
-create policy "insert events" on order_events for insert with check (true);
-create policy "select events" on order_events for select using (true);
+create policy if not exists "insert events" on order_events for insert with check (true);
+create policy if not exists "select events" on order_events for select using (true);
 
--- Realtime
--- In Supabase dashboard, enable Realtime on: public.orders, public.order_items
+-- Enable Realtime on: public.orders (and optional public.order_items)

@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import { supabaseServer } from '@/src/lib/supabaseClient'
+import { supabaseServer } from '@/lib/supabaseClient'
 
 export async function GET() {
   try {
@@ -8,8 +8,7 @@ export async function GET() {
     const { data: items, error: iErr } = await sb.from('menu_items').select('*')
     if (cErr || iErr) throw new Error(cErr?.message || iErr?.message)
     return NextResponse.json({ categories: cats ?? [], items: items ?? [] })
-  } catch (e:any) {
-    // fallback demo data for first run
+  } catch {
     return NextResponse.json({
       categories: [{ id: 1, name: 'Кафета', sort_order: 0 }, { id: 2, name: 'Десерти', sort_order: 1 }],
       items: [

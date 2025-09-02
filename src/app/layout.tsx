@@ -10,7 +10,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           <strong>☕ Cafe</strong>
           <span style={{ marginLeft: 12, color: '#666' }}>Menu & Orders</span>
         </header>
-        <main style={{ padding: 16, maxWidth: 960, margin: '0 auto' }}>{children}</main>
+        <main style={{ padding: 16, maxWidth: 1000, margin: '0 auto' }}>{children}</main>
       </body>
     </html>
   );

@@ -1,17 +1,9 @@
 'use client'
 
 import { useEffect, useMemo, useState } from 'react'
-import { supabaseBrowser } from '@/src/lib/supabaseClient'
-import type { OrderStatus } from '@/src/types'
+import type { OrderStatus } from '@/types'
 
-interface Order {
-  id: string
-  table_id: number
-  status: OrderStatus
-  created_at: string
-  total_cents: number
-}
-
+interface Order { id: string; table_id: number; status: OrderStatus; created_at: string; total_cents: number }
 function money(cents: number) { return (cents/100).toFixed(2) + ' лв' }
 
 export default function Orders() {
@@ -26,17 +18,12 @@ export default function Orders() {
     }
     load()
 
-    const sb = supabaseBrowser()
-    const ch = sb.channel('orders:waiter')
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'orders' }, (payload) => {
-        const o = (payload.new ?? payload.old) as Order
-        setOrders(prev => {
-          const idx = prev.findIndex(p => p.id === o.id)
-          if (idx >= 0) { const copy = prev.slice(); copy[idx] = o; return copy }
-          return [o, ...prev]
-        })
-      }).subscribe()
-    return () => { sb.removeChannel(ch) }
+    const t = setInterval(async () => {
+      const res = await fetch('/api/orders')
+      const data = await res.json()
+      setOrders(data.orders ?? [])
+    }, 5000)
+    return () => clearInterval(t)
   }, [])
 
   const filtered = useMemo(() => {

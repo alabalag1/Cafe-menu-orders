@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { supabaseServer } from '@/src/lib/supabaseClient'
-import type { OrderStatus } from '@/src/types'
+import { supabaseServer } from '@/lib/supabaseClient'
+import type { OrderStatus } from '@/types'
 
 export async function POST(req: NextRequest, { params }: { params: { id: string }}) {
   const { status } = await req.json() as { status: OrderStatus }

@@ -1,18 +1,15 @@
 'use client'
 
 import { useEffect, useMemo, useState } from 'react'
-import { supabaseBrowser } from '@/src/lib/supabaseClient'
-import type { Category, MenuItem } from '@/src/types'
+import type { Category, MenuItem } from '@/types'
 
-function money(cents: number) {
-  return (cents/100).toFixed(2) + ' лв'
-}
+function money(cents: number) { return (cents/100).toFixed(2) + ' лв' }
 
 export default function MenuPage() {
   const [categories, setCategories] = useState<Category[]>([])
   const [items, setItems] = useState<MenuItem[]>([])
   const [activeCat, setActiveCat] = useState<number | null>(null)
-  const [cart, setCart] = useState<Record<number, number>>({}) // menu_item_id -> qty
+  const [cart, setCart] = useState<Record<number, number>>({})
   const [note, setNote] = useState('')
   const [tableId, setTableId] = useState<number | null>(null)
   const [placing, setPlacing] = useState(false)
@@ -38,7 +35,7 @@ export default function MenuPage() {
   const totalCents = useMemo(() => {
     return Object.entries(cart).reduce((sum, [id, qty]) => {
       const item = items.find(i => i.id === Number(id))
-      return sum + (item ? item.price_cents * qty : 0)
+      return sum + (item ? item.price_cents * Number(qty) : 0)
     }, 0)
   }, [cart, items])
 
@@ -57,12 +54,7 @@ export default function MenuPage() {
     const res = await fetch('/api/order', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ tableId, items: itemsArr, note }) })
     const data = await res.json()
     setPlacing(false)
-    if (res.ok) {
-      setCart({})
-      setLastOrderId(data.orderId)
-    } else {
-      alert(data.error ?? 'Failed to place order')
-    }
+    if (res.ok) { setCart({}); setLastOrderId(data.orderId) } else { alert(data.error ?? 'Failed to place order') }
   }
 
   return (
