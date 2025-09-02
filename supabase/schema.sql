@@ -56,18 +56,31 @@ alter table orders enable row level security;
 alter table order_items enable row level security;
 alter table order_events enable row level security;
 
-create policy if not exists "public read categories" on categories for select using (true);
-create policy if not exists "public read items" on menu_items for select using (true);
+-- Drop & recreate policies to avoid duplicates across reruns
+drop policy if exists "public read categories" on categories;
+create policy "public read categories" on categories for select using (true);
 
-create policy if not exists "insert orders" on orders for insert with check (true);
-create policy if not exists "update orders by staff" on orders for update using (
+drop policy if exists "public read items" on menu_items;
+create policy "public read items" on menu_items for select using (true);
+
+drop policy if exists "insert orders" on orders;
+create policy "insert orders" on orders for insert with check (true);
+
+drop policy if exists "update orders by staff" on orders;
+create policy "update orders by staff" on orders for update using (
   auth.jwt() ->> 'role' in ('waiter','kitchen','admin')
 );
 
-create policy if not exists "insert order_items" on order_items for insert with check (true);
-create policy if not exists "select order_items" on order_items for select using (true);
+drop policy if exists "insert order_items" on order_items;
+create policy "insert order_items" on order_items for insert with check (true);
 
-create policy if not exists "insert events" on order_events for insert with check (true);
-create policy if not exists "select events" on order_events for select using (true);
+drop policy if exists "select order_items" on order_items;
+create policy "select order_items" on order_items for select using (true);
+
+drop policy if exists "insert events" on order_events;
+create policy "insert events" on order_events for insert with check (true);
+
+drop policy if exists "select events" on order_events;
+create policy "select events" on order_events for select using (true);
 
 -- Enable Realtime on: public.orders (and optional public.order_items)
