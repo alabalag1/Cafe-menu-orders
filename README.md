@@ -1,19 +1,22 @@
-# Café Menu + Table Orders (Next.js + Supabase)
+# Café Menu & Ordering
 
-Minimal MVP:
-- QR menu per table (`/menu?table=12`)
-- Place orders
-- Kitchen screen (`/kitchen`) and Waiter screen (`/orders`)
-- Realtime order status updates
+Full-stack demo using Next.js 14, Prisma and Supabase.
 
-## Quick start
+## Features
+- Browse menu with categories and products
+- Customers sign in with magic link and start orders via table QR token
+- One open order per table enforced at database level
+- Waiter and kitchen placeholder dashboards
+- Seed script creates sample data and QR codes in `qr/`
+
+## Setup
 ```bash
-pnpm i   # or npm i / yarn
-cp .env.example .env.local  # fill your Supabase keys
+pnpm install
+cp .env.example .env.local # set Supabase keys and database URL
+npx prisma generate
+npx prisma migrate deploy
+pnpm prisma:seed
 pnpm dev
 ```
-Then run the SQL in `supabase/schema.sql` inside your Supabase project's SQL editor.
 
-## Notes
-- **Do not** expose `SUPABASE_SERVICE_ROLE_KEY` in the browser. It's used only in API routes.
-- The UI is intentionally minimal; extend as you wish.
+Run SQL in `supabase/schema.sql` then `supabase/policies.sql` in your Supabase project.

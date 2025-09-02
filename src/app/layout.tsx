@@ -1,17 +1,21 @@
+import './globals.css'
+import React from 'react'
+
 export const metadata = {
   title: 'Cafe Menu',
-  description: 'QR table ordering MVP'
-};
+  description: 'QR table ordering',
+}
+
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">
-      <body style={{ fontFamily: 'system-ui, sans-serif', margin: 0 }}>
-        <header style={{ padding: '12px 16px', borderBottom: '1px solid #eee', position: 'sticky', top: 0, background: 'white', zIndex: 10 }}>
+      <body className="min-h-screen bg-white text-gray-800">
+        <header className="p-4 border-b sticky top-0 bg-white z-10">
           <strong>☕ Cafe</strong>
-          <span style={{ marginLeft: 12, color: '#666' }}>Menu & Orders</span>
+          <span className="ml-3 text-gray-500">Menu & Orders</span>
         </header>
-        <main style={{ padding: 16, maxWidth: 960, margin: '0 auto' }}>{children}</main>
+        <main className="p-4 max-w-3xl mx-auto">{children}</main>
       </body>
     </html>
-  );
+  )
 }

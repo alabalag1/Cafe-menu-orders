@@ -1,16 +1,31 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { supabaseServer } from '@/src/lib/supabaseClient'
+import { prisma } from '@/src/lib/prisma'
+import { getSessionUser } from '@/src/lib/auth'
+import { z } from 'zod'
 
-export async function GET(req: NextRequest) {
-  const sb = supabaseServer()
-  const { searchParams } = new URL(req.url)
-  const status = searchParams.get('status')
-  const table = searchParams.get('table')
+const createOrderSchema = z.object({ tableToken: z.string() })
 
-  let query = sb.from('orders').select('*').order('created_at', { ascending: false }).limit(100)
-  if (status) query = query.eq('status', status)
-  if (table) query = query.eq('table_id', Number(table))
-  const { data, error } = await query
-  if (error) return NextResponse.json({ error: error.message }, { status: 400 })
-  return NextResponse.json({ orders: data })
+export async function POST(req: NextRequest) {
+  const user = await getSessionUser(req)
+  if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  const body = await req.json()
+  const parse = createOrderSchema.safeParse(body)
+  if (!parse.success) return NextResponse.json({ error: 'Invalid body' }, { status: 400 })
+  const table = await prisma.table.findUnique({ where: { tableToken: parse.data.tableToken } })
+  if (!table) return NextResponse.json({ error: 'Table not found' }, { status: 404 })
+  try {
+    const existing = await prisma.order.findFirst({
+      where: { tableId: table.id, status: { in: ['open','submitted','preparing','ready','served'] } }
+    })
+    if (existing) return NextResponse.json(existing)
+    const order = await prisma.order.create({
+      data: { tableId: table.id, customerId: user.id }
+    })
+    return NextResponse.json(order)
+  } catch (e:any) {
+    if (e.code === 'P2002') {
+      return NextResponse.json({ error: 'Table already has open order' }, { status: 409 })
+    }
+    throw e
+  }
 }
