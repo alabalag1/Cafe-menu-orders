@@ -18,16 +18,19 @@ export default function MenuPage() {
   useEffect(() => {
     const url = new URL(window.location.href)
     const t = url.searchParams.get('table')
-    setTableId(t ? Number(t) : 1)
+    const token = url.searchParams.get('token')
+    if (t) setTableId(Number(t))
+    // If token exists, trust API to resolve table; keep tableId nullable
   }, [])
 
   useEffect(() => {
     const load = async () => {
-      const res = await fetch('/api/menu')
+      const res = await fetch(window.location.search ? `/api/menu${window.location.search}` : '/api/menu')
       const data = await res.json()
       setCategories(data.categories)
       setItems(data.items)
       setActiveCat(data.categories[0]?.id ?? null)
+      if (!tableId && data.table_id) setTableId(data.table_id)
     }
     load()
   }, [])

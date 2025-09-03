@@ -3,7 +3,8 @@ create extension if not exists pgcrypto;
 create table if not exists tables (
   id serial primary key,
   name text not null,
-  qr_slug text unique
+  qr_slug text unique,
+  qr_token text unique
 );
 
 create table if not exists categories (
@@ -129,3 +130,6 @@ insert into menu_items (category_id, name, description, price_cents, is_availabl
 on conflict do nothing;
 
 -- Enable Realtime on: public.orders (and optional public.order_items)
+
+-- Ensure tokens are set for existing rows
+update tables set qr_token = coalesce(qr_token, encode(gen_random_bytes(16), 'hex'));

@@ -3,8 +3,19 @@ export const dynamic = 'force-dynamic'
 export const revalidate = 0
 import { supabaseServer } from '@/lib/supabaseClient'
 
-export async function GET() {
+export async function GET(req: Request) {
   const sb = supabaseServer()
+  const { searchParams } = new URL(req.url)
+  const token = searchParams.get('token')
+  const tableParam = searchParams.get('table')
+  let tableId: number | null = null
+
+  if (token) {
+    const { data: t, error } = await sb.from('tables').select('id').eq('qr_token', token).single()
+    if (!error && t) tableId = t.id
+  } else if (tableParam) {
+    tableId = Number(tableParam)
+  }
 
   // 1) Fetch items first (source of truth for what to show)
   const { data: items, error: itemsError } = await sb
@@ -45,6 +56,7 @@ export async function GET() {
 
   return NextResponse.json({
     categories,
-    items: items || []
+    items: items || [],
+    table_id: tableId
   })
 }
