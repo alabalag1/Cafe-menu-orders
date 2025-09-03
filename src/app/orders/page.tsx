@@ -1,9 +1,7 @@
 'use client'
 
 import { useEffect, useMemo, useState } from 'react'
-import type { OrderStatus } from '@/types'
-
-interface Order { id: string; table_id: number; status: OrderStatus; created_at: string; total_cents: number }
+import type { OrderStatus, Order } from '@/types'
 function money(cents: number) { return (cents/100).toFixed(2) + ' лв' }
 
 export default function Orders() {

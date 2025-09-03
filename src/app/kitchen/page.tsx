@@ -1,9 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import type { OrderStatus } from '@/types'
-
-interface Order { id: string; table_id: number; status: OrderStatus; created_at: string; total_cents: number }
+import type { OrderStatus, Order } from '@/types'
 function money(cents: number) { return (cents/100).toFixed(2) + ' лв' }
 
 export default function Kitchen() {
@@ -11,23 +9,32 @@ export default function Kitchen() {
 
   useEffect(() => {
     const load = async () => {
-      const res = await fetch('/api/orders?status=pending')
+      const res = await fetch('/api/orders')
       const data = await res.json()
-      setOrders(data.orders ?? [])
+      // Filter for kitchen-relevant orders (not delivered or cancelled)
+      const filteredOrders = (data.orders ?? []).filter((order: Order) => 
+        !['delivered', 'cancelled'].includes(order.status)
+      )
+      setOrders(filteredOrders)
     }
     load()
 
     // Realtime via polling for simplicity (can wire Supabase Realtime later)
-    const t = setInterval(async () => {
-      const res = await fetch('/api/orders')
-      const data = await res.json()
-      setOrders(data.orders ?? [])
-    }, 4000)
+    const t = setInterval(load, 4000)
     return () => clearInterval(t)
   }, [])
 
   const updateStatus = async (id: string, status: OrderStatus) => {
-    await fetch(`/api/order/${id}/status`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ status }) })
+    const res = await fetch(`/api/order/${id}/status`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ status }) })
+    if (res.ok) {
+      // Optimistically update the order in state
+      setOrders(prev => prev.map(order => 
+        order.id === id ? { ...order, status } : order
+      ).filter(order => !['delivered', 'cancelled'].includes(order.status)))
+    } else {
+      const error = await res.json().catch(() => ({ error: 'Failed to update status' }))
+      alert(error.error || 'Failed to update status')
+    }
   }
 
   const sorted = orders.sort((a,b) => a.created_at.localeCompare(b.created_at))

@@ -1,9 +1,9 @@
 'use client'
 
 import { useEffect, useMemo, useState } from 'react'
+import type { Category, MenuItem } from '@/types'
 
-type Category = { id: number; name: string }
-type Product = { id: number; category_id: number | null; name: string; description?: string | null; price_cents: number; is_available: boolean; image_url?: string | null }
+type Product = MenuItem
 
 function money(cents: number) { return (cents/100).toFixed(2) + ' лв' }
 
@@ -22,6 +22,11 @@ export default function AdminProducts() {
     const listJson = await listRes.json()
     setCategories(catsJson.categories ?? [])
     setProducts(listJson.products ?? [])
+    // Ensure the form has a default category selected when categories exist
+    setForm(prev => ({
+      ...prev,
+      category_id: prev.category_id ?? (catsJson.categories?.[0]?.id ?? null)
+    }))
     setLoading(false)
   }
 
@@ -29,8 +34,10 @@ export default function AdminProducts() {
 
   const onCreate = async () => {
     if (!form.name || !form.price_cents) return alert('Name and price required')
+    // Default category to the first available if none selected
+    const payload = { ...form, category_id: form.category_id ?? (categories[0]?.id ?? null) }
     setSaving(true)
-    const res = await fetch('/api/products', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(form) })
+    const res = await fetch('/api/products', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) })
     setSaving(false)
     if (!res.ok) {
       const j = await res.json().catch(()=>({} as any))
