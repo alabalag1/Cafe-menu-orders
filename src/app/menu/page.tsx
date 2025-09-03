@@ -61,39 +61,48 @@ export default function MenuPage() {
   }
 
   return (
-    <div style={{ display: 'grid', gridTemplateColumns: '220px 1fr', gap: 16 }}>
-      <aside>
-        <h2>Категории</h2>
-        <ul style={{ listStyle: 'none', padding: 0 }}>
+    <div className="layout-grid" style={{ display: 'grid', gridTemplateColumns: '260px 1fr', gap: 16 }}>
+      <div className="glass card menu-hero" style={{ gridColumn: '1 / -1' }}>
+        <div className="menu-hero-inner">
+          <div>
+            <div className="menu-hero-title">FIFA Nights · Play. Sip. Repeat.</div>
+            <div className="menu-hero-sub">Grab a controller, order a drink, and enjoy the match.</div>
+          </div>
+          <div className="menu-hero-badge">Table {tableId ?? '—'}</div>
+        </div>
+      </div>
+      <aside className="sidebar">
+        <h2 style={{ marginTop: 0 }}>Категории</h2>
+        <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
           {categories.map(c => (
-            <li key={c.id}>
-              <button onClick={() => setActiveCat(c.id)} style={{ padding: '8px 10px', margin: '4px 0', width: '100%', background: activeCat===c.id? '#efefef':'#fff', border: '1px solid #ddd', borderRadius: 8 }}>{c.name}</button>
+            <li key={c.id} style={{ marginBottom: 8 }}>
+              <button className={`category-btn ${activeCat===c.id? 'active':''}`} onClick={() => setActiveCat(c.id)}>{c.name}</button>
             </li>
           ))}
         </ul>
       </aside>
       <section>
-        <h2>Меню</h2>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: 12 }}>
+        <h2 style={{ marginTop: 0 }}>Меню</h2>
+        <div className="items-grid">
           {items.filter(i => !activeCat || i.category_id === activeCat).map(i => (
-            <div key={i.id} style={{ border: '1px solid #eee', borderRadius: 12, padding: 12 }}>
-              <div style={{ fontWeight: 600 }}>{i.name}</div>
-              <div style={{ color: '#666', minHeight: 36 }}>{i.description}</div>
-              <div style={{ marginTop: 8 }}>{money(i.price_cents)}</div>
-              <div style={{ display: 'flex', gap: 8, marginTop: 8 }}>
-                <button onClick={()=>dec(i.id)}>-</button>
+            <div key={i.id} className="glass card item-card">
+              <div className="item-title">{i.name}</div>
+              <div className="item-desc">{i.description}</div>
+              <div><span className="chip">{money(i.price_cents)}</span></div>
+              <div className="qty-row">
+                <button className="btn ghost" onClick={()=>dec(i.id)}>-</button>
                 <span>{cart[i.id] ?? 0}</span>
-                <button onClick={()=>add(i.id)}>+</button>
+                <button className="btn ghost" onClick={()=>add(i.id)}>+</button>
               </div>
             </div>
           ))}
         </div>
 
-        <div style={{ position: 'sticky', bottom: 16, marginTop: 24, padding: 12, border: '1px solid #ddd', borderRadius: 12, background: '#fff' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
-            <input placeholder="Бележка към поръчката" value={note} onChange={e=>setNote(e.target.value)} style={{ flex: 1, padding: 8, borderRadius: 8, border: '1px solid #ddd' }} />
+        <div className="glass cart-bar">
+          <div className="cart-row">
+            <input className="input" placeholder="Бележка към поръчката" value={note} onChange={e=>setNote(e.target.value)} style={{ flex: 1 }} />
             <strong>Общо: {money(totalCents)}</strong>
-            <button onClick={placeOrder} disabled={placing} style={{ padding: '10px 16px', borderRadius: 10, border: '1px solid #111' }}>{placing? 'Изпращане...' : 'Изпрати поръчка'}</button>
+            <button className="btn primary" onClick={placeOrder} disabled={placing}>{placing? 'Изпращане...' : 'Изпрати поръчка'}</button>
           </div>
           {lastOrderId && <p style={{ marginTop: 8 }}>Поръчка изпратена! ID: <code>{lastOrderId}</code></p>}
         </div>
